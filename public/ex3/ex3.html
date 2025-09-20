@@ -33,33 +33,129 @@
     </div>
     
     <script>
-        function getCategories() {
+
+        var glbCategories;
+
+        async function getCategories() {
             // Fetch categories from the server using Axios
             // and display them in the select element
             // url: http://localhost:3010/categories
+            try{
+                const response = await axios.get("/categories");
+                // console.log(response);
+                // console.log(response.data);
 
+                glbCategories = response.data
+                showCategories(glbCategories);
+                return glbCategories;
+            }
+            catch (error) {
+                console.log(error);
+                return null;
+            }
         }
 
         function showCategories(categories) {
             // Display the categories in the select element
-            
+            const selectCategoryEle = document.getElementById("selectCategory");
+            // console.log(categories);
+
+            categories.forEach(category => {
+                const newOptionEle = document.createElement("option");
+                newOptionEle.innerText = category;
+                newOptionEle.value = category;
+                selectCategoryEle.appendChild(newOptionEle);
+            });   
         }
 
-        function getItems() {
+        async function getItems() {
             // Fetch items based on the selected category
             // If "To select" is chosen, do nothing
             // If "All" is chosen, fetch all items
             // If a specific category is chosen, fetch items for that category
-            // url: http://localhost:3010/items?category=categoryName
-            
+            // url: http://localhost:3010/items?category=categoryNamex
+
+            // const selectCategoryEle = document.getElementById("selectCategory");
+
+            const category = document.getElementById("selectCategory").value;
+            const itemsList = document.getElementById("itemsList");
+
+            removeItems(itemsList);
+
+            if(category == "0") {
+                const newTextEle = document.createElement("p");
+                newTextEle.innerText = "No items";
+                newTextEle.className = "text-center"
+                itemsList.appendChild(newTextEle); 
+
+            }
+            else if(category == "all") {
+                var allItems = [];
+
+                for await (const category of glbCategories) {
+                    allItems = allItems.concat(await requestItems(category));
+                }
+                // console.log(allItems);
+                showItems(allItems);
+            }
+            else {
+                showItems(await requestItems(category));
+            }
+        }
+        
+        async function requestItems(category) {
+            try{
+                const response = await axios.get("/items", {
+                    params: {
+                        category: category
+                    }
+                    });
+                    
+                // console.log(response.data);
+                return response.data;
+                }
+                catch (error) {
+                    console.log(error);
+                    return null;
+                }
         }
 
-        function showItems(items) {
+        async function showItems(items) {
             // Display the items in the itemsList div
             // Each item should be displayed in a bootstrap card format
             // The display should be responsive 3 columns on large screens, 2 columns on medium screens, and 1 column on small screens
-            
 
+            const itemsList = document.getElementById("itemsList");
+
+            items.forEach(item => {
+                console.log(item)
+                const newCardEle = document.createElement("div");
+                newCardEle.className = "card col-12 col-lg-3 col-md-4 ";
+
+                const newCardBodyEle = document.createElement("div");
+                newCardBodyEle.className = "card-body";
+
+                const newCardTitleEle = document.createElement("h5");
+                newCardTitleEle.className = "card-title";
+                newCardTitleEle.innerText = item.name;
+
+                const newCardTextEle = document.createElement("p");
+                newCardTextEle.className = "card-text";
+                newCardTextEle.innerText = "Price: $" + item.price;
+
+                newCardBodyEle.appendChild(newCardTitleEle);
+                newCardBodyEle.appendChild(newCardTextEle);
+                newCardEle.appendChild(newCardBodyEle);
+
+                itemsList.appendChild(newCardEle);
+            });
+        }
+
+        function removeItems(itemsList) {
+            while (itemsList.firstChild != null) {
+                    itemsList.firstChild.remove();
+                }
+                console.log("Old Data Cleared");
         }
 
     </script>

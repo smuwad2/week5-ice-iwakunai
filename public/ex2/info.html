@@ -5,7 +5,7 @@
         <!-- Bootstrap -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
         
-         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     </head>
     <body>
         <div class="bg-light text-center p-5 mb-4">
@@ -23,10 +23,81 @@
 
         </div>
         <script>
-            function getData() {
- 
+            const resultDiv = document.getElementById("result");
+
+            function clearData() {
+                while (resultDiv.firstChild != null) {
+                    resultDiv.firstChild.remove();
+                }
+                console.log("Old Data Cleared");
+            }
+
+            function createH2(data) {
+                // H2 append
+                const h2Ele = document.createElement("h2");
+                const type = data.type;
+
+                h2Ele.textContent = type;
+                result.appendChild(h2Ele);
+            }
+            
+            function createTable(data) {
+                // console.log(data.records[0]);
+                // Table
+                const tableEle = document.createElement("table");
+                tableEle.className = "table";
+                const tbodyEle = document.createElement("tbody");
+                tableEle.appendChild(tbodyEle);
+                resultDiv.appendChild(tableEle);
+
+                const thRowEle = document.createElement("tr");
+                
+                const tdEle = document.createElement("td"); 
+
+                const tblHeadings = data.records[0];
+
+                for (const heading in tblHeadings) {
+                    const thEle = document.createElement("th");
+                    thEle.innerText = heading;
+                    thRowEle.appendChild(thEle);       
+                }   
+                tbodyEle.appendChild(thRowEle);
+
+                const records = data.records;
+                records.forEach(record => {
+                    const tdRowEle = document.createElement("tr");
+                    for(const key in record) {
+                        const tdEle = document.createElement("td");
+                        tdEle.textContent = record[key];
+                        // console.log(tdEle);
+                        tdRowEle.appendChild(tdEle);
+                        // console.log(record[key]);
+                    }
+                    tbodyEle.appendChild(tdRowEle);
+                });
+
+
+
+            }
+
+            async function getData() {
+                try{
+                    const response = await axios.get("/data", {
+                        params: {
+                            type: document.getElementById("type").value,
+                            limit: document.getElementById("limit").value
+                        }
+                    });
+                    clearData();
+                    createH2(response.data);
+                    createTable(response.data);
+                }
+                catch (error){
+                    console.log(error);
+                }
             }
 
         </script>
+
 </body>
 </html>
